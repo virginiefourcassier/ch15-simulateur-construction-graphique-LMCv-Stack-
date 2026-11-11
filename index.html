@@ -1,0 +1,1459 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Image par une lentille</title>
+<meta name="description" content="Construction pas à pas de l'image réelle A'B' d'un objet AB par une lentille mince convergente (seconde).">
+<style>
+  :root {
+    --violet: #6a1b9a;
+    --violet-fonce: #4a148c;
+    --parme: #f1e6f7;
+    --parme-bord: #b48ec8;
+    --fond: #fbf9fd;
+    --texte: #2b2135;
+    --ok: #1b6e35;
+    --ok-fond: #e5f4e9;
+    --err: #8a3d00;
+    --err-fond: #fff0dd;
+    --info-fond: #eef0fb;
+    --r1: #D55E00;
+    --r2: #0072B2;
+    --r3: #009E73;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    font-family: "Comic Sans MS", "Comic Sans", "Comic Neue", "Chalkboard SE", cursive;
+    background: var(--fond);
+    color: var(--texte);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+  }
+  header {
+    display: flex; align-items: center; gap: 8px 14px; flex-wrap: wrap;
+    padding: 6px 12px; background: #fff; border-bottom: 2px solid var(--parme-bord);
+  }
+  h1 { font-size: 1.02rem; margin: 0; color: var(--violet-fonce); }
+  .donnees { font-size: .92rem; background: var(--parme); border: 1px solid var(--parme-bord); border-radius: 8px; padding: 2px 8px; }
+  .progression { display: flex; gap: 4px; flex-wrap: wrap; margin-left: auto; }
+  .progression button {
+    min-width: 34px; min-height: 34px; padding: 2px 6px; border-radius: 17px;
+    font-size: .85rem; border: 2px solid var(--parme-bord); background: #fff; color: var(--violet-fonce);
+  }
+  .progression button.valide { background: var(--ok-fond); border-color: var(--ok); color: var(--ok); }
+  .progression button.erreur { background: var(--err-fond); border-color: #c26a1b; color: var(--err); }
+  .progression button.courante { outline: 3px solid var(--violet); outline-offset: 1px; font-weight: bold; }
+  .progression button:disabled { opacity: .4; cursor: not-allowed; }
+  .outils-haut { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .outils-haut label { font-size: .85rem; display: flex; gap: 4px; align-items: center; cursor: pointer; }
+  .outils-haut input { width: 18px; height: 18px; accent-color: var(--violet); }
+  .zone { flex: 1; min-height: 0; padding: 4px 6px; display: flex; }
+  #scene { width: 100%; height: 100%; display: block; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+  #scene text { font-family: inherit; pointer-events: none; }
+  .panneau {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 16px;
+    padding: 8px 12px; background: #fff; border-top: 2px solid var(--parme-bord);
+    max-height: 36vh; overflow: auto;
+  }
+  .titre-etape { font-size: .85rem; color: #6d5a7d; margin: 0 0 2px; }
+  .consigne { color: var(--violet); font-weight: bold; font-size: 1.06rem; margin: 0; }
+  .precision { color: var(--violet); margin: 2px 0 0; font-size: .95rem; }
+  .aide { background: var(--parme); border: 2px solid var(--parme-bord); border-radius: 12px; padding: 6px 10px; margin-top: 6px; }
+  .aide p { margin: 2px 0; }
+  .retour { margin-top: 6px; padding: 6px 10px; border-radius: 10px; font-weight: bold; }
+  .retour.ok { background: var(--ok-fond); color: var(--ok); border: 2px solid #8cc79d; }
+  .retour.err { background: var(--err-fond); color: var(--err); border: 2px solid #e2a465; }
+  .retour.info { background: var(--info-fond); color: #2f3a7a; border: 2px solid #aab3e6; }
+  .boutons { display: flex; flex-wrap: wrap; gap: 6px; align-content: flex-start; justify-content: flex-end; max-width: 460px; }
+  button {
+    font-family: inherit; font-size: .93rem; border-radius: 10px; border: 2px solid var(--violet);
+    background: #fff; color: var(--violet-fonce); padding: 6px 10px; cursor: pointer; min-height: 40px;
+  }
+  button:hover { background: var(--parme); }
+  button.principal { background: var(--violet); color: #fff; }
+  button.principal:hover { background: var(--violet-fonce); }
+  button.aide-btn { border-color: var(--parme-bord); background: var(--parme); }
+  button:focus-visible { outline: 3px solid #e3a400; outline-offset: 2px; }
+  .legende { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: .82rem; margin-top: 6px; color: #4b3d58; align-items: center; }
+  .legende span { display: inline-flex; align-items: center; gap: 4px; }
+  .pastille { width: 14px; height: 14px; border-radius: 3px; display: inline-block; }
+  .bilan h2 { color: var(--violet); font-size: 1.1rem; margin: 0 0 4px; }
+  .bilan { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 0 18px; align-items: start; }
+  .bilan h2 { grid-column: 1 / -1; }
+  .bilan p { margin: 2px 0; }
+  .bilan ul { margin: 2px 0; padding-left: 20px; }
+  .bilan li { margin: 1px 0; }
+  @media (max-width: 820px) { .bilan { grid-template-columns: 1fr; } }
+  .bilan .ok { color: var(--ok); }
+  dialog { border: 3px solid var(--parme-bord); border-radius: 16px; max-width: min(640px, 94vw); font-family: inherit; color: var(--texte); }
+  dialog::backdrop { background: rgba(40, 20, 60, .35); }
+  dialog h2 { color: var(--violet); font-size: 1.1rem; margin-top: 0; }
+  #demo { width: 100%; height: auto; background: #fff; border: 1px solid #ddd; border-radius: 10px; touch-action: none; }
+  #demo text { font-family: inherit; }
+  .legende-demo { min-height: 1.4em; color: var(--violet); font-weight: bold; text-align: center; margin: 4px 0; }
+  .message-erreur { padding: 20px; color: var(--err); }
+  .valeurs { display: grid; grid-template-columns: auto auto; gap: 10px 14px; align-items: center; }
+  .valeurs label { font-weight: bold; color: var(--violet-fonce); }
+  .saisie { display: inline-flex; gap: 4px; align-items: center; }
+  .saisie input { font-family: inherit; font-size: 1.1rem; width: 6em; text-align: center; padding: 6px; border: 2px solid var(--parme-bord); border-radius: 8px; min-height: 40px; }
+  .saisie button { width: 42px; font-size: 1.2rem; padding: 0; }
+  .valeurs .retour { grid-column: 1 / -1; margin: 0; }
+  .lecture { background: var(--ok-fond); border: 2px solid #8cc79d; border-radius: 10px; padding: 6px 10px; margin: 6px 0; font-size: 1.05rem; }
+  @media (max-width: 520px) { .valeurs { grid-template-columns: 1fr; } }
+  [hidden] { display: none !important; }
+  @media (max-width: 820px) {
+    .panneau { grid-template-columns: 1fr; }
+    .boutons { justify-content: flex-start; max-width: none; }
+    .progression { margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Construire l'image d'un objet par une lentille convergente</h1>
+  <span class="donnees" id="donnees" aria-label="Données de l'exercice"></span>
+  <span class="donnees" id="lms" hidden></span>
+  <div class="outils-haut">
+    <label title="Les extrémités se placent sur les nœuds du quadrillage lorsqu'elles en sont très proches"><input type="checkbox" id="opt-grille"> Aligner sur le quadrillage</label>
+    <button type="button" id="btn-valeurs" class="principal">⚙ Régler les valeurs</button>
+    <button type="button" id="btn-outil">Comment utiliser l'outil de tracé ?</button>
+    <button type="button" id="btn-nouveau">Nouvel exercice</button>
+  </div>
+  <nav class="progression" id="progression" aria-label="Étapes de la construction"></nav>
+</header>
+
+<main class="zone">
+  <svg id="scene" role="img" aria-label="Zone de construction : axe optique, lentille convergente, foyers F et F', objet AB" xmlns="http://www.w3.org/2000/svg"></svg>
+</main>
+
+<section class="panneau" aria-live="polite">
+  <div id="bloc-etape">
+    <p class="titre-etape" id="titre-etape"></p>
+    <p class="consigne" id="consigne"></p>
+    <p class="precision" id="precision" hidden></p>
+    <div class="aide" id="aide" hidden></div>
+    <div class="retour" id="retour" role="status" hidden></div>
+    <div class="legende" aria-hidden="true">
+      <span><svg width="34" height="10"><line x1="2" y1="5" x2="32" y2="5" stroke="#555" stroke-width="3"/></svg>incident</span>
+      <span><svg width="34" height="10"><line x1="2" y1="5" x2="32" y2="5" stroke="#555" stroke-width="3" stroke-dasharray="9 4"/></svg>émergent</span>
+      <span><i class="pastille" style="background:var(--r1)"></i>trajet 1</span>
+      <span><i class="pastille" style="background:var(--r2)"></i>trajet 2</span>
+      <span><i class="pastille" style="background:var(--r3)"></i>trajet 3</span>
+    </div>
+  </div>
+  <div id="bloc-bilan" class="bilan" hidden></div>
+  <div class="boutons" id="boutons">
+    <button type="button" class="principal" id="btn-verifier">Vérifier mon tracé</button>
+    <button type="button" id="btn-modifier-bp" hidden>Modifier la position de B'</button>
+    <button type="button" id="btn-annuler">Annuler ma dernière manipulation</button>
+    <button type="button" id="btn-recommencer">Recommencer ce rayon</button>
+    <button type="button" class="aide-btn" id="btn-aide">💡 J'ai besoin d'une aide</button>
+  </div>
+</section>
+
+<dialog id="dlg-valeurs" aria-labelledby="val-titre">
+  <h2 id="val-titre">Régler les valeurs de l'exercice</h2>
+  <p class="consigne" style="font-size:.98rem">Entre les valeurs données dans ta question, puis clique sur « Appliquer ces valeurs ».</p>
+  <form id="form-valeurs" class="valeurs">
+    <label for="val-fp">Distance focale f' (en cm)</label>
+    <span class="saisie"><button type="button" data-cible="val-fp" data-pas="-0.5" aria-label="Diminuer f' de 0,5 cm">−</button><input id="val-fp" inputmode="decimal" autocomplete="off" data-min="0.5"><button type="button" data-cible="val-fp" data-pas="0.5" aria-label="Augmenter f' de 0,5 cm">+</button></span>
+    <label for="val-oa">Distance objet–lentille OA (en cm)</label>
+    <span class="saisie"><button type="button" data-cible="val-oa" data-pas="-1" aria-label="Diminuer OA de 1 cm">−</button><input id="val-oa" inputmode="decimal" autocomplete="off" data-min="1"><button type="button" data-cible="val-oa" data-pas="1" aria-label="Augmenter OA de 1 cm">+</button></span>
+    <label for="val-ab">Taille de l'objet AB (en cm)</label>
+    <span class="saisie"><button type="button" data-cible="val-ab" data-pas="-1" aria-label="Diminuer AB de 1 cm">−</button><input id="val-ab" inputmode="decimal" autocomplete="off" data-min="0.5"><button type="button" data-cible="val-ab" data-pas="1" aria-label="Augmenter AB de 1 cm">+</button></span>
+    <p class="retour err" id="val-erreur" role="alert" hidden></p>
+    <p class="aide" style="grid-column:1/-1">💡 Tu peux taper une valeur (la virgule est acceptée) ou utiliser les boutons − et +. L'échelle du schéma s'adapte toute seule : lis-la en haut à gauche.</p>
+    <p style="grid-column:1/-1;text-align:right;margin:0">
+      <button type="button" id="btn-annuler-valeurs">Annuler</button>
+      <button type="submit" class="principal" id="btn-appliquer-valeurs">Appliquer ces valeurs</button>
+    </p>
+  </form>
+</dialog>
+
+<dialog id="dlg-outil" aria-labelledby="dlg-titre">
+  <h2 id="dlg-titre">Comment utiliser l'outil de tracé ?</h2>
+  <svg id="demo" viewBox="0 0 400 190" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"></svg>
+  <p class="legende-demo" id="legende-demo"></p>
+  <ol>
+    <li><b>Tracer</b> : appuie sur le point de départ, maintiens l'appui, fais glisser puis relâche.</li>
+    <li><b>Corriger</b> : touche un segment pour faire apparaître ses deux poignées, puis déplace une poignée. L'autre extrémité ne bouge pas.</li>
+    <li><b>Accrochage</b> : près d'un point déjà connu (B, O, F, F', point d'incidence…), un petit cercle apparaît ; si tu relâches à ce moment-là, l'extrémité se place exactement sur ce point. Près de la lentille, l'extrémité se pose sur la lentille.</li>
+    <li><b>Ajuster finement</b> : après avoir déplacé une poignée (ou la croix B'), les flèches du clavier la déplacent un tout petit peu (Maj + flèche : un demi-carreau).</li>
+    <li>L'outil ne trace jamais un rayon à ta place : c'est toi qui choisis chaque direction.</li>
+  </ol>
+  <p style="text-align:right;margin:0"><button type="button" class="principal" id="btn-fermer-outil">J'ai compris</button></p>
+</dialog>
+
+<script>
+/* ==== MOTEUR DEBUT ==== */
+/*
+ * Moteur géométrique de la simulation, indépendant de l'affichage.
+ * Unités : le carreau (1 carreau = 1 cm). Repère : O à l'origine, axe optique = axe des x,
+ * lumière de gauche à droite, y vers le haut. Les distances OA, OA', AB, A'B' sont positives.
+ * Les relations de conjugaison ne servent qu'aux calculs internes (vérification du tirage et
+ * de la construction) ; elles ne sont jamais présentées à l'élève.
+ */
+var Moteur = (function () {
+  'use strict';
+
+  var DEFAUTS = {
+    grille: { xmin: -17, xmax: 17, ymin: -8, ymax: 8, pas: 0.5 },
+    demiHauteurLentille: 7.4,
+    focales: [3, 3.5, 4, 4.5, 5],
+    kMin: 1.5,                 // OA est tiré entre kMin·f' et kMax·f'
+    kMax: 3,
+    pasObjet: 0.5,             // OA est un multiple de ce pas (A sur une ligne du quadrillage)
+    taillesObjet: [1.5, 2, 2.5, 3, 3.5, 4],
+    types: ['agrandie', 'meme', 'reduite'],
+    ecartMemeTaille: 0.1,      // évite les images « presque de même taille » ambiguës
+    marges: { bord: 1.5, imageMin: 1, lentille: 0.4, distanceFoyer: 1, angleMinDeg: 8, longueurEmergente: 0.5 },
+    tolerances: { position: 0.25, passage: 0.25, angleDeg: 2, bPrime: 0.35, verticalite: 0.25, axe: 0.2 },
+    tolerancesEcranPx: { position: 8, passage: 8, bPrime: 10, verticalite: 8, axe: 6 },
+    accrochagePx: 10,
+    accrochageTactilePx: 18,
+    accrochageGrille: false,
+    rayonGrilleFraction: 0.3,
+    poigneePx: 11,
+    poigneeTactilePx: 16,
+    graine: null
+  };
+
+  var MSG = {
+    absent: "Trace d'abord ton segment : appuie, maintiens et fais glisser.",
+    depart: 'Vérifie le point de départ.',
+    direction: 'Vérifie la direction de ton rayon.',
+    lentilleDepasse: "Ton rayon incident doit s'arrêter sur la lentille.",
+    lentilleCourt: "Ton rayon incident doit s'arrêter sur la lentille : prolonge-le jusqu'à elle.",
+    horsLentille: 'Ton rayon doit rencontrer la lentille.',
+    foyer: 'Vérifie le passage par le foyer.',
+    centre: 'Vérifie le passage par le centre optique O.',
+    continuite: 'Vérifie la continuité entre les parties incidente et émergente.',
+    sens: 'Vérifie la direction de ton rayon : après la lentille, la lumière continue vers la droite.',
+    longueur: 'Prolonge ton rayon émergent vers la droite : il doit être assez long pour croiser les autres rayons émergents.',
+    prerequis: "Termine d'abord la construction des trois rayons.",
+    absentCroix: "Déplace d'abord la croix B'.",
+    surRayon: "Ta croix est sur un rayon émergent, mais pas encore à l'intersection des rayons émergents.",
+    intersection: "Ta croix n'est pas au point d'intersection des rayons émergents. Observe où ils se croisent.",
+    departImage: "Ton segment doit partir de B', le point que tu as placé.",
+    axe: "Vérifie la position de A' : c'est l'image du point A, qui est sur l'axe optique.",
+    cote: "L'image réelle se forme de l'autre côté de la lentille.",
+    verticale: "Vérifie la position de A' par rapport à B'.",
+    renverse: "Vérifie l'orientation de l'image : est-elle droite ou renversée ?",
+    coherence: 'Vérifie la cohérence de ton image avec les rayons émergents.'
+  };
+
+  // ---------- outils ----------
+  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+  function fusion(base, sur) {
+    Object.keys(sur || {}).forEach(function (k) {
+      var v = sur[k];
+      if (v === undefined) return;
+      if (v && typeof v === 'object' && !Array.isArray(v) && base[k] && typeof base[k] === 'object' && !Array.isArray(base[k])) fusion(base[k], v);
+      else base[k] = v;
+    });
+    return base;
+  }
+  function configurer(surcharges) { return fusion(clone(DEFAUTS), surcharges || {}); }
+
+  // ---------- géométrie ----------
+  function sub(a, b) { return { x: a.x - b.x, y: a.y - b.y }; }
+  function dist(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
+  function norme(v) { return Math.hypot(v.x, v.y); }
+  function angleEntre(u, v) { // angle (degrés, 0 à 180) entre deux directions orientées
+    var n = norme(u) * norme(v);
+    if (n === 0) return 180;
+    var c = (u.x * v.x + u.y * v.y) / n;
+    return Math.acos(Math.max(-1, Math.min(1, c))) * 180 / Math.PI;
+  }
+  function distPointDroite(p, a, b) {
+    var d = sub(b, a), n = norme(d);
+    if (n === 0) return dist(p, a);
+    return Math.abs(d.x * (p.y - a.y) - d.y * (p.x - a.x)) / n;
+  }
+  function distPointSegment(p, a, b) {
+    var d = sub(b, a), l2 = d.x * d.x + d.y * d.y;
+    if (l2 === 0) return dist(p, a);
+    var t = ((p.x - a.x) * d.x + (p.y - a.y) * d.y) / l2;
+    t = Math.max(0, Math.min(1, t));
+    return dist(p, { x: a.x + t * d.x, y: a.y + t * d.y });
+  }
+  function intersectionDroites(a1, a2, b1, b2) {
+    var d1 = sub(a2, a1), d2 = sub(b2, b1);
+    var den = d1.x * d2.y - d1.y * d2.x;
+    if (Math.abs(den) < 1e-12) return null;
+    var t = ((b1.x - a1.x) * d2.y - (b1.y - a1.y) * d2.x) / den;
+    return { x: a1.x + t * d1.x, y: a1.y + t * d1.y };
+  }
+  function orienter(seg, ref) { // l'extrémité la plus proche de ref devient le début
+    return dist(seg.p, ref) <= dist(seg.q, ref) ? { debut: seg.p, fin: seg.q } : { debut: seg.q, fin: seg.p };
+  }
+
+  // ---------- hasard reproductible ----------
+  function rngDepuisGraine(graine) {
+    var a = (Number(graine) >>> 0) || 1;
+    return function () {
+      a = (a + 0x6D2B79F5) >>> 0;
+      var t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function choisir(rng, tab) { return tab[Math.floor(rng() * tab.length) % tab.length]; }
+
+  // ---------- tirage ----------
+  function intervalleK(type, cfg) {
+    var s = cfg.ecartMemeTaille;
+    if (type === 'agrandie') return [cfg.kMin, Math.min(cfg.kMax, 1 + 1 / (1 + s))];
+    if (type === 'reduite') return [Math.max(cfg.kMin, 1 + 1 / (1 - s)), cfg.kMax];
+    return [2, 2];
+  }
+  function typesPossibles(cfg) {
+    return cfg.types.filter(function (t) {
+      var iv = intervalleK(t, cfg);
+      if (t === 'meme') return cfg.kMin <= 2 + 1e-9 && cfg.kMax >= 2 - 1e-9;
+      return iv[0] <= iv[1];
+    });
+  }
+
+  function construireExercice(f, OA, AB) {
+    var OAi = f * OA / (OA - f);       // calcul interne uniquement
+    var ABi = AB * OAi / OA;
+    var g = ABi / AB;
+    var type = Math.abs(g - 1) < 1e-9 ? 'meme' : (g > 1 ? 'agrandie' : 'reduite');
+    return {
+      f: f, OA: OA, AB: AB, OAi: OAi, ABi: ABi, gamma: g, type: type,
+      A: { x: -OA, y: 0 }, B: { x: -OA, y: AB }, O: { x: 0, y: 0 },
+      F: { x: -f, y: 0 }, Fp: { x: f, y: 0 },
+      I1: { x: 0, y: AB }, I2: { x: 0, y: 0 }, I3: { x: 0, y: -ABi },
+      Bp: { x: OAi, y: -ABi }, Ap: { x: OAi, y: 0 },
+      echelle: { x: 1, y: 1 },                     // cm par carreau
+      cm: { f: f, OA: OA, AB: AB, OAi: OAi, ABi: ABi }
+    };
+  }
+
+  // Exercice à valeurs imposées (en cm), par exemple celles d'une question STACK.
+  // Les échelles horizontale et verticale sont choisies automatiquement (elles peuvent
+  // différer : une affinité verticale conserve alignements, parallélisme à l'axe et
+  // intersections, donc toute la construction). La grille est recadrée sur l'objet et l'image.
+  var ECHELLES_X = [0.5, 1, 2, 2.5, 4, 5, 10, 20, 25, 50];
+  var ECHELLES_Y = [0.1, 0.2, 0.25, 0.4, 0.5, 1, 2, 2.5, 4, 5, 10];
+  function exerciceDepuisCm(fp, OA, AB, cfg) {
+    fp = Number(fp); OA = Number(OA); AB = Number(AB);
+    if (!(isFinite(fp) && fp > 0)) return { ok: false, raisons: ['La distance focale doit être un nombre positif.'] };
+    if (!(isFinite(AB) && AB > 0)) return { ok: false, raisons: ["La taille de l'objet doit être un nombre positif."] };
+    if (!(isFinite(OA) && OA > fp)) return { ok: false, raisons: ["La distance OA doit être plus grande que la distance focale f' pour obtenir une image réelle."] };
+    var OAi = fp * OA / (OA - fp), ABi = AB * OAi / OA;
+    var g0 = cfg.grille, largeur = g0.xmax - g0.xmin, hMax = g0.ymax - 1.5;
+    var ex = null, ey = null, i;
+    for (i = 0; i < ECHELLES_X.length && ex === null; i++) if ((OA + OAi) / ECHELLES_X[i] + 4.5 <= largeur) ex = ECHELLES_X[i];
+    for (i = 0; i < ECHELLES_Y.length && ey === null; i++) if (Math.max(AB, ABi) / ECHELLES_Y[i] <= hMax) ey = ECHELLES_Y[i];
+    if (ex === null || ey === null) return { ok: false, raisons: ['Ces valeurs sont trop grandes pour être représentées.'] };
+    var xmin = -Math.ceil(OA / ex + 1.75);
+    var grille = { xmin: xmin, xmax: xmin + largeur, ymin: g0.ymin, ymax: g0.ymax, pas: g0.pas };
+    var cfgEx = fusion(clone(cfg), {
+      grille: grille, kMin: 1 + 1e-9, kMax: 1e9, ecartMemeTaille: 0,
+      marges: { bord: 1, imageMin: 0.5, distanceFoyer: 0.2, angleMinDeg: 3 }
+    });
+    var exo = construireExercice(fp / ex, OA / ex, AB / ey);
+    exo.echelle = { x: ex, y: ey };
+    exo.cm = { f: fp, OA: OA, AB: AB, OAi: OAi, ABi: ABi };
+    exo.personnalise = true;
+    exo.cfg = cfgEx;
+    var v = verifierExercice(exo, cfgEx);
+    if (!v.ok) return { ok: false, raisons: ['Ces valeurs ne permettent pas une construction lisible (' + v.raisons.join(', ') + ').'] };
+    return { ok: true, ex: exo };
+  }
+
+  function verifierExercice(ex, cfg) {
+    var g = cfg.grille, m = cfg.marges, LH = cfg.demiHauteurLentille, R = [];
+    if (!(ex.OA > ex.f)) R.push("OA n'est pas supérieure à f'");
+    if (ex.OA / ex.f < cfg.kMin - 1e-9 || ex.OA / ex.f > cfg.kMax + 1e-9) R.push('OA hors du domaine demandé');
+    if (!(ex.OAi > 0 && ex.Bp.y < 0)) R.push("image non réelle ou non renversée");
+    if (ex.A.x < g.xmin + m.bord) R.push('objet trop près du bord gauche');
+    if (ex.Bp.x > g.xmax - m.bord) R.push('image trop près du bord droit');
+    if (ex.B.y > g.ymax - m.bord) R.push('objet trop haut');
+    if (ex.Bp.y < g.ymin + m.bord) R.push('image trop près du bord bas');
+    if (ex.ABi < m.imageMin) R.push('image trop petite');
+    if (ex.AB > LH - m.lentille || ex.ABi > LH - m.lentille) R.push("point d'incidence hors de la lentille");
+    if (ex.OA - ex.f < m.distanceFoyer) R.push('B trop proche du plan du foyer objet');
+    if (ex.OAi - ex.f < m.distanceFoyer) R.push("B' trop proche du plan du foyer image");
+    if (ex.type !== 'meme' && Math.abs(ex.gamma - 1) < cfg.ecartMemeTaille - 1e-9) R.push('image presque de même taille (ambigu)');
+    if (ex.Bp.x + m.longueurEmergente > g.xmax - 0.5) R.push('rayons émergents trop courts au-delà de B\'');
+    var d1 = sub(ex.Fp, ex.I1), d2 = sub(ex.Bp, ex.O), d3 = { x: 1, y: 0 };
+    var amin = Math.min(angleEntre(d1, d2), angleEntre(d1, d3), angleEntre(d2, d3));
+    if (amin < m.angleMinDeg) R.push('rayons émergents presque parallèles près de B\'');
+    // le rayon 1 émergent prolongé jusqu'au bord droit reste lisible dans la grille
+    var yBord = ex.AB - ex.AB / ex.f * (ex.Bp.x + m.longueurEmergente);
+    if (yBord < g.ymin) R.push('rayon 1 émergent sort de la grille avant B\'');
+    return { ok: R.length === 0, raisons: R };
+  }
+
+  function genererExercice(cfg, rng, typeVoulu) {
+    rng = rng || Math.random;
+    var types = typesPossibles(cfg);
+    if (!types.length) throw new Error("Aucun type d'image possible avec ces paramètres.");
+    for (var essai = 0; essai < 4000; essai++) {
+      var type = (typeVoulu && types.indexOf(typeVoulu) >= 0) ? typeVoulu : choisir(rng, types);
+      var f = choisir(rng, cfg.focales);
+      var cands = [];
+      if (type === 'meme') cands = [2 * f];
+      else {
+        var iv = intervalleK(type, cfg), p = cfg.pasObjet;
+        var i0 = Math.ceil(iv[0] * f / p - 1e-9), i1 = Math.floor(iv[1] * f / p + 1e-9);
+        for (var i = i0; i <= i1; i++) cands.push(Math.round(i * p * 1e6) / 1e6);
+      }
+      if (!cands.length) continue;
+      var ex = construireExercice(f, choisir(rng, cands), choisir(rng, cfg.taillesObjet));
+      if (ex.type === type && verifierExercice(ex, cfg).ok) return ex;
+    }
+    throw new Error('Aucun tirage constructible et entièrement visible avec ces paramètres.');
+  }
+
+  // ---------- tolérances ----------
+  // Les tolérances de validation sont exprimées en carreaux (indépendantes de l'écran).
+  // Sur un petit écran, elles ne descendent jamais sous l'équivalent de tolerancesEcranPx.
+  function tolerancesEffectives(cfg, pxParUnite) {
+    var t = clone(cfg.tolerances);
+    if (pxParUnite && isFinite(pxParUnite) && pxParUnite > 0) {
+      Object.keys(cfg.tolerancesEcranPx).forEach(function (k) {
+        if (k in t) t[k] = Math.max(t[k], cfg.tolerancesEcranPx[k] / pxParUnite);
+      });
+    }
+    return t;
+  }
+
+  // ---------- accrochage (indépendant de la validation) ----------
+  // Ne contient QUE des points déjà connus ou déjà placés par l'élève : jamais B', A' ni
+  // les points d'incidence théoriques.
+  function ciblesAccrochage(ex, etat, cfg, opts) {
+    opts = opts || {};
+    var c = [
+      { type: 'point', nom: 'B', x: ex.B.x, y: ex.B.y },
+      { type: 'point', nom: 'A', x: ex.A.x, y: ex.A.y },
+      { type: 'point', nom: 'O', x: 0, y: 0 },
+      { type: 'point', nom: 'F', x: ex.F.x, y: 0 },
+      { type: 'point', nom: "F'", x: ex.Fp.x, y: 0 }
+    ];
+    [1, 3, 5].forEach(function (k) {
+      var s = etat.segs[k];
+      if (s && k !== opts.exclureSeg) {
+        var I = orienter(s, ex.B).fin;
+        c.push({ type: 'point', nom: 'I' + ((k + 1) / 2), x: I.x, y: I.y });
+      }
+    });
+    if (opts.bPrime && etat.bp) c.push({ type: 'point', nom: "B'", x: etat.bp.x, y: etat.bp.y });
+    var LH = cfg.demiHauteurLentille;
+    c.push({ type: 'verticale', nom: 'lentille', x: 0, ymin: -LH, ymax: LH });
+    if (opts.axe) c.push({ type: 'horizontale', nom: 'axe', y: 0, xmin: cfg.grille.xmin, xmax: cfg.grille.xmax });
+    return c;
+  }
+
+  // Priorité : points remarquables > lentille / axe (une seule coordonnée) > nœuds du quadrillage.
+  // Hors de toutes les zones de capture, le point est rendu INCHANGÉ.
+  function accrocher(p, cibles, rayon, opts) {
+    opts = opts || {};
+    var best = null, bd = rayon;
+    cibles.forEach(function (c) {
+      if (c.type !== 'point') return;
+      var d = dist(p, c);
+      if (d <= bd) { bd = d; best = c; }
+    });
+    if (best) return { p: { x: best.x, y: best.y }, cible: best };
+    var bl = null, bdl = rayon, pl = null;
+    cibles.forEach(function (c) {
+      var d;
+      if (c.type === 'verticale' && p.y >= c.ymin && p.y <= c.ymax) {
+        d = Math.abs(p.x - c.x);
+        if (d <= bdl) { bdl = d; bl = c; pl = { x: c.x, y: p.y }; }
+      } else if (c.type === 'horizontale' && p.x >= c.xmin && p.x <= c.xmax) {
+        d = Math.abs(p.y - c.y);
+        if (d <= bdl) { bdl = d; bl = c; pl = { x: p.x, y: c.y }; }
+      }
+    });
+    if (bl) return { p: pl, cible: bl };
+    if (opts.grille) {
+      var pas = opts.pas || 0.5, rg = opts.rayonGrille !== undefined ? opts.rayonGrille : 0.3 * pas;
+      var n = { x: Math.round(p.x / pas) * pas, y: Math.round(p.y / pas) * pas };
+      if (dist(n, p) <= rg) return { p: n, cible: { type: 'grille', nom: 'quadrillage', x: n.x, y: n.y } };
+    }
+    return { p: { x: p.x, y: p.y }, cible: null };
+  }
+
+  // ---------- validation ----------
+  function echec(code, extra) { return { ok: false, code: code, message: MSG[code] + (extra ? ' ' + extra : '') }; }
+
+  function intersectionEleve(ex, etat) {
+    var L = [2, 4, 6].map(function (k) { return etat.segs[k]; });
+    if (L.some(function (s) { return !s; })) return null;
+    var pts = [];
+    for (var i = 0; i < 3; i++) for (var j = i + 1; j < 3; j++) {
+      var P = intersectionDroites(L[i].p, L[i].q, L[j].p, L[j].q);
+      if (P) pts.push(P);
+    }
+    if (!pts.length) return null;
+    var c = pts.reduce(function (a, P) { return { x: a.x + P.x / pts.length, y: a.y + P.y / pts.length }; }, { x: 0, y: 0 });
+    var dispersion = Math.max.apply(null, pts.map(function (P) { return dist(P, c); }));
+    return { x: c.x, y: c.y, dispersion: dispersion };
+  }
+
+  function verifierIncident(k, ex, s, tol, cfg) {
+    var o = orienter(s, ex.B), d = o.debut, f = o.fin;
+    if (dist(d, ex.B) > tol.position) return echec('depart');
+    if (f.x > tol.position) return echec('lentilleDepasse');
+    if (f.x < -tol.position) return echec('lentilleCourt');
+    if (Math.abs(f.y) > cfg.demiHauteurLentille) return echec('horsLentille');
+    var dir = sub(f, d);
+    if (k === 1) {
+      if (angleEntre(dir, { x: 1, y: 0 }) > tol.angleDeg || dist(f, ex.I1) > tol.position) return echec('direction');
+    } else if (k === 3) {
+      if (dist(f, ex.O) > tol.position) return echec('centre');
+    } else {
+      if (distPointSegment(ex.F, d, f) > tol.passage) return echec('foyer');
+      if (angleEntre(dir, sub(ex.F, ex.B)) > tol.angleDeg || dist(f, ex.I3) > tol.position) return echec('direction');
+    }
+    return { ok: true, seg: { p: d, q: f } };
+  }
+
+  function verifierEmergent(k, ex, etat, s, tol) {
+    var inc = etat.segs[k - 1];
+    if (!inc) return echec('prerequis');
+    var I = orienter(inc, ex.B).fin;
+    var o = orienter(s, I), d = o.debut, f = o.fin;
+    if (Math.abs(d.x) > tol.position) return echec('depart');
+    if (dist(d, I) > tol.position) return echec('continuite');
+    var dir = sub(f, d);
+    if (dir.x <= 0) return echec('sens');
+    if (k === 2) {
+      if (distPointSegment(ex.Fp, d, f) > tol.passage && distPointDroite(ex.Fp, d, f) > tol.passage) return echec('foyer');
+      if (angleEntre(dir, sub(ex.Fp, d)) > tol.angleDeg) return echec('direction');
+    } else if (k === 4) {
+      var di = orienter(inc, ex.B);
+      if (angleEntre(dir, sub(di.fin, di.debut)) > tol.angleDeg) return echec('direction');
+    } else {
+      if (angleEntre(dir, { x: 1, y: 0 }) > tol.angleDeg) return echec('direction');
+    }
+    if (f.x < ex.Bp.x + 0.5) return echec('longueur');
+    return { ok: true, seg: { p: d, q: f } };
+  }
+
+  function verifierCroix(ex, etat, tol) {
+    if (!etat.bp) return echec('absentCroix');
+    var bp = etat.bp;
+    if (dist(bp, ex.Bp) <= tol.bPrime) return { ok: true };
+    var C = intersectionEleve(ex, etat);
+    if (C && dist(C, ex.Bp) <= 3 * tol.bPrime && dist(bp, C) <= tol.bPrime) return { ok: true };
+    var dmin = Infinity;
+    [2, 4, 6].forEach(function (k) {
+      var s = etat.segs[k];
+      if (s) dmin = Math.min(dmin, distPointDroite(bp, s.p, s.q));
+    });
+    return echec(dmin <= tol.bPrime ? 'surRayon' : 'intersection');
+  }
+
+  function verifierImage(ex, etat, s, tol) {
+    if (!etat.bp) return echec('absentCroix');
+    var o = orienter(s, etat.bp), d = o.debut, a = o.fin;
+    if (dist(d, etat.bp) > tol.position) return echec('departImage');
+    if (Math.abs(a.y) > tol.axe) return echec('axe');
+    if (a.x <= 0) return echec('cote');
+    if (Math.abs(a.x - etat.bp.x) > tol.verticalite) return echec('verticale');
+    if (!(etat.bp.y < 0)) return echec('renverse');
+    if (Math.abs(a.x - ex.Ap.x) > tol.verticalite + tol.bPrime) return echec('coherence');
+    return { ok: true, seg: { p: a, q: d } }; // orienté de A' vers B'
+  }
+
+  // k : 1..8. Ne vérifie que la géométrie ; l'ordre des étapes est géré par l'interface.
+  function verifierEtape(k, ex, etat, tol, cfg) {
+    if (k === 7) {
+      if (!etat.segs[2] || !etat.segs[4] || !etat.segs[6]) return echec('prerequis');
+      return verifierCroix(ex, etat, tol);
+    }
+    var s = etat.segs[k];
+    if (!s) return echec('absent');
+    if (k === 8) return verifierImage(ex, etat, s, tol);
+    if (k % 2 === 1) return verifierIncident(k, ex, s, tol, cfg);
+    return verifierEmergent(k, ex, etat, s, tol);
+  }
+
+  return {
+    DEFAUTS: DEFAUTS, MSG: MSG, configurer: configurer,
+    sub: sub, dist: dist, angleEntre: angleEntre, distPointDroite: distPointDroite,
+    distPointSegment: distPointSegment, intersectionDroites: intersectionDroites, orienter: orienter,
+    rngDepuisGraine: rngDepuisGraine, typesPossibles: typesPossibles, intervalleK: intervalleK,
+    construireExercice: construireExercice, verifierExercice: verifierExercice, genererExercice: genererExercice,
+    exerciceDepuisCm: exerciceDepuisCm,
+    tolerancesEffectives: tolerancesEffectives, ciblesAccrochage: ciblesAccrochage, accrocher: accrocher,
+    intersectionEleve: intersectionEleve, verifierEtape: verifierEtape
+  };
+})();
+if (typeof module !== 'undefined' && module.exports) module.exports = Moteur;
+/* ==== MOTEUR FIN ==== */
+</script>
+
+<script>
+/* ==== INTERFACE ==== */
+(function () {
+  'use strict';
+  var M = Moteur;
+  var CFG = M.configurer(lireParametres());
+  var S = 40, NS = 'http://www.w3.org/2000/svg';
+  var CFGX = CFG;                 // configuration de l'exercice en cours (grille recadrée si valeurs imposées)
+  var G = CFG.grille, LH = CFG.demiHauteurLentille;
+  var COUL = { 1: '#D55E00', 2: '#0072B2', 3: '#009E73', image: '#7b1fa2', ref: '#2b2b2b', objet: '#222' };
+
+  var ETAPES = [null,
+    { titre: 'Trajet 1 : rayon incident',
+      consigne: "Trace le rayon lumineux issu de B et incident sur la lentille parallèlement à l'axe optique.",
+      aides: ["Compare la direction de ton rayon avec celle de l'axe optique.",
+              "Le rayon incident doit être horizontal : il part de B et atteint la lentille parallèlement à l'axe optique."],
+      succes: "Bravo ! Ton rayon incident est parallèle à l'axe optique et s'arrête sur la lentille." },
+    { titre: 'Trajet 1 : rayon émergent',
+      consigne: 'Construis maintenant le rayon émergent correspondant.',
+      aides: ["Quel rôle joue le foyer image F' pour un rayon incident parallèle à l'axe optique ?",
+              "Un rayon incident parallèle à l'axe optique émerge en passant par le foyer image F'."],
+      succes: "Exact : le rayon émergent passe par le foyer image F'." },
+    { titre: 'Trajet 2 : rayon incident',
+      consigne: 'Trace le rayon incident issu de B qui passe par le centre optique O.',
+      aides: ['Repère le centre optique de la lentille.', 'Le rayon incident relie B au centre optique O.'],
+      succes: 'Bien : ton rayon incident relie B au centre optique O.' },
+    { titre: 'Trajet 2 : rayon émergent',
+      consigne: 'Construis le rayon émergent correspondant.',
+      aides: ['Que devient un rayon qui passe par le centre optique ?',
+              "Un rayon passant par le centre optique O d'une lentille mince n'est pas dévié."],
+      succes: "Exact : un rayon qui passe par le centre optique n'est pas dévié." },
+    { titre: 'Trajet 3 : rayon incident',
+      consigne: "Trace le rayon issu de B qui passe par le foyer objet F avant d'atteindre la lentille.",
+      aides: ['Repère F, situé à gauche de la lentille.',
+              "Le rayon doit partir de B, passer par F et continuer en ligne droite jusqu'à la lentille."],
+      succes: "Bien : ton rayon passe par le foyer objet F et s'arrête sur la lentille." },
+    { titre: 'Trajet 3 : rayon émergent',
+      consigne: 'Construis le rayon émergent correspondant.',
+      aides: ['Quelle direction prend un rayon émergent lorsque le rayon incident passe par le foyer objet F ?',
+              "Un rayon incident passant par F émerge parallèlement à l'axe optique."],
+      succes: "Exact : ce rayon émerge parallèlement à l'axe optique." },
+    { titre: "Position de B'",
+      consigne: "Les rayons émergents se rencontrent au point image B'. Déplace la croix B' jusqu'à leur point d'intersection.",
+      aides: ['Suis des yeux chacun des trois rayons émergents : où se croisent-ils tous les trois ?',
+              "B' est le point commun aux trois rayons émergents : place le centre de la croix exactement sur leur intersection."],
+      succes: "Bravo : B' est bien au point d'intersection des rayons émergents." },
+    { titre: "Image A'B'",
+      consigne: "Construis l'image A'B' de l'objet AB.",
+      precision: "Trace un segment qui part de B' : son autre extrémité sera le point A'.",
+      aides: ["Où se trouve A', l'image du point A situé sur l'axe optique ?",
+              "A' est sur l'axe optique, à la verticale de B' : l'image A'B' est perpendiculaire à l'axe optique."],
+      succes: "Tu as construit l'image réelle A'B' de l'objet AB." },
+    { titre: 'Bilan' }
+  ];
+
+  var $ = function (id) { return document.getElementById(id); };
+  var svg = $('scene');
+  var ex, etat, suivi, pile = [], selection = null, interaction = null, survol = null;
+  var poigneeActive = null, niveauAide = 0, referenceVisible = false;
+  var grilleActive = !!CFG.accrochageGrille, sacTypes = [];
+  var rng = CFG.graine !== null && CFG.graine !== undefined ? M.rngDepuisGraine(CFG.graine) : Math.random;
+  var tactile = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+
+  // ---------- paramètres d'URL (enseignante) ----------
+  function lireParametres() {
+    var q = new URLSearchParams(location.search), o = {}, t = {};
+    function num(n) { var v = q.get(n); if (v === null || v === '') return undefined; var x = parseFloat(v.replace(',', '.')); return isFinite(x) ? x : undefined; }
+    function liste(n) { var v = q.get(n); if (!v) return undefined; var a = v.split(/[;|_]/).map(function (s) { return parseFloat(s.replace(',', '.')); }).filter(isFinite); return a.length ? a : undefined; }
+    if (num('kmin') !== undefined) o.kMin = num('kmin');
+    if (num('kmax') !== undefined) o.kMax = num('kmax');
+    if (liste('focales')) o.focales = liste('focales');
+    if (liste('tailles')) o.taillesObjet = liste('tailles');
+    if (q.get('types')) {
+      var ty = q.get('types').split(/[;|_,]/).filter(function (s) { return ['agrandie', 'meme', 'reduite'].indexOf(s) >= 0; });
+      if (ty.length) o.types = ty;
+    }
+    var mt = { tolpos: 'position', tolpassage: 'passage', tolangle: 'angleDeg', tolbprime: 'bPrime', tolvert: 'verticalite', tolaxe: 'axe' };
+    Object.keys(mt).forEach(function (n) { if (num(n) !== undefined) t[mt[n]] = num(n); });
+    if (Object.keys(t).length) o.tolerances = t;
+    if (num('accrochage') !== undefined) o.accrochagePx = num('accrochage');
+    if (num('accrochagetactile') !== undefined) o.accrochageTactilePx = num('accrochagetactile');
+    if (q.get('grille') === '1') o.accrochageGrille = true;
+    if (num('graine') !== undefined) o.graine = num('graine');
+    return o;
+  }
+
+  // ---------- SVG ----------
+  function X(x) { return x * S; }
+  function Y(y) { return -y * S; }
+  function el(tag, attrs, parent, texte) {
+    var e = document.createElementNS(NS, tag);
+    for (var k in attrs) if (attrs[k] !== null && attrs[k] !== undefined) e.setAttribute(k, attrs[k]);
+    if (texte !== undefined) e.textContent = texte;
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function vider(g) { while (g.firstChild) g.removeChild(g.firstChild); }
+  function fmt(v, dec) { var p = Math.pow(10, dec === undefined ? 2 : dec); return String(Math.round(v * p) / p).replace('.', ','); }
+
+  var defs = el('defs', {}, svg);
+  var clip = el('clipPath', { id: 'clip-grille' }, defs);
+  var clipRect = el('rect', {}, clip);
+  var C = {};
+  ['grille', 'optique', 'reference', 'rayons', 'image', 'interaction'].forEach(function (n) { C[n] = el('g', { id: 'calque-' + n }, svg); });
+  C.reference.setAttribute('clip-path', 'url(#clip-grille)');
+  C.rayons.setAttribute('clip-path', 'url(#clip-grille)');
+  var PAD = { g: 1.2, d: 0.5, h: 0.5, b: 1.0 };
+  svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+  function majCadre() { // la grille peut changer d'un exercice à l'autre (valeurs imposées)
+    G = CFGX.grille;
+    clipRect.setAttribute('x', X(G.xmin)); clipRect.setAttribute('y', Y(G.ymax));
+    clipRect.setAttribute('width', (G.xmax - G.xmin) * S); clipRect.setAttribute('height', (G.ymax - G.ymin) * S);
+    svg.setAttribute('viewBox', [X(G.xmin - PAD.g), Y(G.ymax + PAD.h), (G.xmax - G.xmin + PAD.g + PAD.d) * S, (G.ymax - G.ymin + PAD.h + PAD.b) * S].join(' '));
+  }
+
+  function pxParSvg() { var m = svg.getScreenCTM(); return m && m.a > 0 ? m.a : 1; }
+  function pxParUnite() { return pxParSvg() * S; }
+  function u(px) { return px / pxParSvg(); }
+  function monde(e) {
+    var m = svg.getScreenCTM();
+    if (!m) return { x: 0, y: 0 };
+    var pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
+    var s = pt.matrixTransform(m.inverse());
+    return { x: s.x / S, y: -s.y / S };
+  }
+  function borner(p) { return { x: Math.min(G.xmax, Math.max(G.xmin, p.x)), y: Math.min(G.ymax, Math.max(G.ymin, p.y)) }; }
+  function tol() { return M.tolerancesEffectives(CFG, pxParUnite()); }
+
+  function pointe(pW, dirW, taille, couleur, parent) { // taille en unités SVG
+    var l = Math.hypot(dirW.x, dirW.y); if (!l) return;
+    var dx = dirW.x / l, dy = -dirW.y / l, w = taille * 0.55;
+    var tx = X(pW.x), ty = Y(pW.y), bx = tx - dx * taille, by = ty - dy * taille;
+    el('polygon', { points: [tx + ',' + ty, (bx - dy * w) + ',' + (by + dx * w), (bx + dy * w) + ',' + (by - dx * w)].join(' '), fill: couleur }, parent);
+  }
+  function texte(x, y, t, attrs, parent) {
+    var a = { x: X(x), y: Y(y), 'font-size': 0.5 * S, fill: '#2b2135', 'text-anchor': 'middle' };
+    for (var k in attrs) a[k] = attrs[k];
+    return el('text', a, parent, t);
+  }
+
+  // ---------- dessin statique ----------
+  function renderStatique() {
+    vider(C.grille); vider(C.optique);
+    var g = C.grille;
+    el('rect', { x: X(G.xmin), y: Y(G.ymax), width: (G.xmax - G.xmin) * S, height: (G.ymax - G.ymin) * S, fill: '#fff', stroke: '#b9abc9', 'stroke-width': 1.5 }, g);
+    var i, v;
+    for (i = Math.ceil(G.xmin / G.pas); i * G.pas <= G.xmax + 1e-9; i++) {
+      v = i * G.pas; var maj = Math.abs(v - Math.round(v)) < 1e-9;
+      el('line', { x1: X(v), y1: Y(G.ymin), x2: X(v), y2: Y(G.ymax), stroke: maj ? '#d6cbe2' : '#efeaf4', 'stroke-width': maj ? 1.2 : 0.8 }, g);
+    }
+    for (i = Math.ceil(G.ymin / G.pas); i * G.pas <= G.ymax + 1e-9; i++) {
+      v = i * G.pas; var maj2 = Math.abs(v - Math.round(v)) < 1e-9;
+      el('line', { x1: X(G.xmin), y1: Y(v), x2: X(G.xmax), y2: Y(v), stroke: maj2 ? '#d6cbe2' : '#efeaf4', 'stroke-width': maj2 ? 1.2 : 0.8 }, g);
+    }
+    // graduations en cm (distances positives à partir de O et de l'axe)
+    var ech = ex.echelle, pasX = ech.x % 1 ? 2 : 1, pasY = (ech.y * 100) % 50 ? 2 : 1;
+    for (v = Math.ceil(G.xmin); v <= G.xmax; v++) if (v % pasX === 0) texte(v, G.ymin - 0.6, fmt(Math.abs(v) * ech.x), { 'font-size': 0.34 * S, fill: '#7a6a88' }, g);
+    for (v = Math.ceil(G.ymin); v <= G.ymax; v++) if (v % pasY === 0) texte(G.xmin - 0.25, v - 0.12, fmt(Math.abs(v) * ech.y), { 'font-size': 0.34 * S, fill: '#7a6a88', 'text-anchor': 'end' }, g);
+    texte(G.xmax + 0.3, G.ymin - 0.6, 'cm', { 'font-size': 0.34 * S, fill: '#7a6a88' }, g);
+    // échelle
+    var txtEch = ech.x === ech.y ? 'Échelle : 1 carreau = ' + fmt(ech.x) + ' cm'
+      : 'Échelles : horizontalement 1 carreau = ' + fmt(ech.x) + ' cm ; verticalement 1 carreau = ' + fmt(ech.y) + ' cm';
+    el('rect', { x: X(G.xmin + 0.15), y: Y(G.ymax - 0.15), width: (1.9 + txtEch.length * 0.2) * S, height: 0.75 * S, fill: '#fff', stroke: '#d6cbe2', rx: 6 }, g);
+    el('line', { x1: X(G.xmin + 0.4), y1: Y(G.ymax - 0.6), x2: X(G.xmin + 1.4), y2: Y(G.ymax - 0.6), stroke: '#4a148c', 'stroke-width': 3 }, g);
+    [0.4, 1.4].forEach(function (dx) { el('line', { x1: X(G.xmin + dx), y1: Y(G.ymax - 0.45), x2: X(G.xmin + dx), y2: Y(G.ymax - 0.75), stroke: '#4a148c', 'stroke-width': 2 }, g); });
+    texte(G.xmin + 1.65, G.ymax - 0.72, txtEch, { 'font-size': 0.36 * S, 'text-anchor': 'start', fill: '#4a148c' }, g);
+
+    var o = C.optique;
+    // axe optique
+    el('line', { x1: X(G.xmin), y1: 0, x2: X(G.xmax), y2: 0, stroke: '#333', 'stroke-width': 2 }, o);
+    texte(G.xmax - 0.2, 0.25, 'axe optique', { 'font-size': 0.36 * S, 'text-anchor': 'end', fill: '#555', 'font-style': 'italic' }, o);
+    // lentille convergente
+    el('line', { x1: 0, y1: Y(-LH), x2: 0, y2: Y(LH), stroke: '#3b2a55', 'stroke-width': 4 }, o);
+    pointe({ x: 0, y: LH + 0.05 }, { x: 0, y: 1 }, 0.45 * S, '#3b2a55', o);
+    pointe({ x: 0, y: -LH - 0.05 }, { x: 0, y: -1 }, 0.45 * S, '#3b2a55', o);
+    texte(0.3, LH - 0.3, 'lentille', { 'font-size': 0.34 * S, 'text-anchor': 'start', fill: '#555', 'font-style': 'italic' }, o);
+    // O, F, F'
+    el('circle', { cx: 0, cy: 0, r: 0.12 * S, fill: '#222' }, o);
+    texte(0.32, -0.55, 'O', { 'font-weight': 'bold' }, o);
+    [[ex.F, 'F'], [ex.Fp, "F'"]].forEach(function (a) {
+      el('line', { x1: X(a[0].x), y1: Y(-0.22), x2: X(a[0].x), y2: Y(0.22), stroke: '#222', 'stroke-width': 3 }, o);
+      el('circle', { cx: X(a[0].x), cy: 0, r: 0.08 * S, fill: '#222' }, o);
+      texte(a[0].x, -0.62, a[1], { 'font-weight': 'bold' }, o);
+    });
+    // objet AB
+    el('line', { x1: X(ex.A.x), y1: 0, x2: X(ex.B.x), y2: Y(ex.B.y - 0.25), stroke: COUL.objet, 'stroke-width': 5 }, o);
+    pointe(ex.B, { x: 0, y: 1 }, 0.4 * S, COUL.objet, o);
+    el('circle', { cx: X(ex.B.x), cy: Y(ex.B.y), r: 0.07 * S, fill: '#fff', stroke: COUL.objet, 'stroke-width': 1.5 }, o);
+    texte(ex.A.x, -0.62, 'A', { 'font-weight': 'bold' }, o);
+    texte(ex.B.x - 0.45, ex.B.y + 0.15, 'B', { 'font-weight': 'bold' }, o);
+  }
+
+  // ---------- dessin dynamique ----------
+  function styleRayon(k) {
+    var r = Math.ceil(k / 2), em = k % 2 === 0;
+    return { stroke: COUL[r], 'stroke-width': u(3.2), 'stroke-linecap': 'round', 'stroke-dasharray': em ? u(12) + ' ' + u(5) : null };
+  }
+  function ligne(a, b, style, parent, extra) {
+    var at = { x1: X(a.x), y1: Y(a.y), x2: X(b.x), y2: Y(b.y) };
+    var k; for (k in style) at[k] = style[k];
+    for (k in (extra || {})) at[k] = extra[k];
+    return el('line', at, parent);
+  }
+
+  function dessinerSegment(k) {
+    var s = etat.segs[k]; if (!s) return;
+    var g = el('g', {}, C.rayons), st = styleRayon(k);
+    ligne(s.p, s.q, st, g);
+    var r = Math.ceil(k / 2), valide = etat.statut[k] === 'valide';
+    if (valide) pointe({ x: (s.p.x + s.q.x) / 2, y: (s.p.y + s.q.y) / 2 }, M.sub(s.q, s.p), u(14), COUL[r], g);
+    // repère du trajet (lisible sans les couleurs)
+    var d = M.sub(s.q, s.p), l = Math.hypot(d.x, d.y);
+    if (l * pxParUnite() > 60) {
+      var t = k % 2 ? 0.62 : 0.8, nx = -d.y / l, ny = d.x / l, off = u(13) / S;
+      var px = s.p.x + d.x * t + nx * off, py = s.p.y + d.y * t + ny * off;
+      el('text', { x: X(px), y: Y(py) + u(4), 'font-size': u(12), 'text-anchor': 'middle', fill: COUL[r], 'font-weight': 'bold' }, g, String(r));
+    }
+    ligne(s.p, s.q, { stroke: 'transparent', 'stroke-width': u(22) }, C.rayons, { 'data-role': 'segment', 'data-seg': k, style: 'cursor:pointer' });
+  }
+
+  function dessinerCroix() {
+    var b = etat.bp, g = el('g', {}, C.image), L = u(11), cx = X(b.x), cy = Y(b.y);
+    var verrou = etat.bpVerrouille || etat.etape !== 7;
+    el('line', { x1: cx - L, y1: cy - L, x2: cx + L, y2: cy + L, stroke: COUL.image, 'stroke-width': u(2.6) }, g);
+    el('line', { x1: cx - L, y1: cy + L, x2: cx + L, y2: cy - L, stroke: COUL.image, 'stroke-width': u(2.6) }, g);
+    el('text', { x: cx + u(14), y: cy + u(22), 'font-size': u(16), fill: COUL.image, 'font-weight': 'bold' }, g, "B'");
+    if (!verrou) el('circle', { cx: cx, cy: cy, r: u(tactile ? 26 : 20), fill: 'rgba(123,31,162,0.06)', stroke: 'rgba(123,31,162,0.35)', 'stroke-width': u(1), 'stroke-dasharray': u(3) + ' ' + u(3), 'data-role': 'croix', style: 'cursor:grab' }, g);
+  }
+
+  function dessinerImage() {
+    var s = etat.segs[8]; if (!s) return;
+    var g = el('g', {}, C.image);
+    var ref = etat.bp || s.q, o = M.orienter(s, ref);
+    ligne(o.debut, o.fin, { stroke: COUL.image, 'stroke-width': u(4.5), 'stroke-linecap': 'round' }, g);
+    if (etat.statut[8] === 'valide') pointe(o.debut, M.sub(o.debut, o.fin), u(15), COUL.image, g);
+    var a = o.fin;
+    el('text', { x: X(a.x) + u(12), y: Y(a.y) + (a.y > -0.3 ? u(-8) : u(18)), 'font-size': u(16), fill: COUL.image, 'font-weight': 'bold' }, g, "A'");
+    ligne(s.p, s.q, { stroke: 'transparent', 'stroke-width': u(22) }, C.image, { 'data-role': 'segment', 'data-seg': 8, style: 'cursor:pointer' });
+  }
+
+  function dessinerReference() {
+    var g = C.reference, st = { stroke: COUL.ref, 'stroke-width': u(2), 'stroke-dasharray': u(3) + ' ' + u(5), opacity: 0.85 };
+    var xr = G.xmax;
+    function prolonger(a, b) { var d = M.sub(b, a); var t = (xr - a.x) / d.x; return { x: xr, y: a.y + t * d.y }; }
+    ligne(ex.B, ex.I1, st, g); ligne(ex.I1, prolonger(ex.I1, ex.Fp), st, g);
+    ligne(ex.B, ex.O, st, g); ligne(ex.O, prolonger(ex.B, ex.O), st, g);
+    ligne(ex.B, ex.I3, st, g); ligne(ex.I3, { x: xr, y: ex.I3.y }, st, g);
+    ligne(ex.Ap, ex.Bp, { stroke: COUL.ref, 'stroke-width': u(3), 'stroke-dasharray': u(4) + ' ' + u(4) }, g);
+    el('circle', { cx: X(ex.Bp.x), cy: Y(ex.Bp.y), r: u(5), fill: 'none', stroke: COUL.ref, 'stroke-width': u(1.5) }, g);
+    el('text', { x: X(ex.Bp.x) - u(10), y: Y(ex.Bp.y) + u(26), 'font-size': u(13), fill: COUL.ref, 'text-anchor': 'end' }, g, 'référence');
+  }
+
+  function poignee(p, seg, bout, couleur) {
+    var g = C.interaction, r = u(tactile ? CFG.poigneeTactilePx : CFG.poigneePx);
+    var actif = poigneeActive && poigneeActive.seg === seg && poigneeActive.bout === bout;
+    el('circle', { cx: X(p.x), cy: Y(p.y), r: r, fill: actif ? '#fff6d6' : '#fff', stroke: couleur, 'stroke-width': u(3) }, g);
+    el('circle', { cx: X(p.x), cy: Y(p.y), r: u(2.2), fill: couleur }, g);
+    el('circle', { cx: X(p.x), cy: Y(p.y), r: r + u(8), fill: 'transparent', 'data-role': 'poignee', 'data-seg': seg, 'data-bout': bout, style: 'cursor:move' }, g);
+  }
+
+  function renderInteraction() {
+    vider(C.interaction);
+    var k = etat.etape, g = C.interaction;
+    var segM = null;
+    if (interaction && interaction.type === 'trace' && interaction.demarre) {
+      segM = { p: interaction.debut, q: interaction.courant };
+      var st = k === 8 ? { stroke: COUL.image, 'stroke-width': u(4), 'stroke-linecap': 'round' } : styleRayon(k);
+      ligne(segM.p, segM.q, st, g, { opacity: 0.8 });
+    } else if (interaction && interaction.type === 'poignee') segM = etat.segs[interaction.seg];
+    if (selection && etat.segs[selection]) {
+      var s = etat.segs[selection], c = selection === 8 ? COUL.image : COUL[Math.ceil(selection / 2)];
+      poignee(s.p, selection, 'p', c); poignee(s.q, selection, 'q', c);
+    }
+    // repère discret de passage près de F ou F' (aucune modification du tracé)
+    if (segM) {
+      var rW = CFG.accrochagePx / pxParUnite();
+      [ex.F, ex.Fp].forEach(function (P) {
+        if (M.distPointSegment(P, segM.p, segM.q) <= rW && M.dist(P, segM.p) > rW && M.dist(P, segM.q) > rW)
+          el('circle', { cx: X(P.x), cy: Y(P.y), r: u(9), fill: 'rgba(240,180,0,0.25)', stroke: '#c98a00', 'stroke-width': u(1.5) }, g);
+      });
+    }
+    // halo d'accrochage
+    if (survol && survol.cible) {
+      var cb = survol.cible;
+      if (cb.type === 'point') el('circle', { cx: X(cb.x), cy: Y(cb.y), r: u(CFG.accrochagePx + 2), fill: 'none', stroke: '#7b1fa2', 'stroke-width': u(1.5), 'stroke-dasharray': u(3) + ' ' + u(2) }, g);
+      else if (cb.type === 'verticale' || cb.type === 'horizontale' || cb.type === 'grille')
+        el('circle', { cx: X(survol.p.x), cy: Y(survol.p.y), r: u(5), fill: 'none', stroke: '#7b1fa2', 'stroke-width': u(1.5) }, g);
+    }
+  }
+
+  function render() {
+    if (!ex) return;
+    vider(C.rayons); vider(C.image); vider(C.reference);
+    for (var k = 1; k <= 6; k++) dessinerSegment(k);
+    if (referenceVisible) dessinerReference();
+    dessinerImage();
+    if (etat.bp && (etat.etape >= 7 || etat.statut[7] === 'valide')) dessinerCroix();
+    renderInteraction();
+  }
+
+  // ---------- état ----------
+  function etapeSegment(k) { return (k >= 1 && k <= 6) || k === 8; }
+  function premiereNonValide() { for (var k = 1; k <= 8; k++) if (etat.statut[k] !== 'valide') return k; return 9; }
+  function accessible(k) { return k <= premiereNonValide(); }
+  function aUneEtapeValide() { for (var k = 1; k <= 8; k++) if (etat.statut[k] === 'valide') return true; return false; }
+  function instantane() { return JSON.stringify({ segs: etat.segs, bp: etat.bp, statut: etat.statut, etape: etat.etape, bpVerrouille: etat.bpVerrouille }); }
+  function empiler(s) { pile.push(s); if (pile.length > 300) pile.shift(); }
+  function positionInitialeCroix() { return { x: G.xmax - 2, y: G.ymax - 1.5 }; }
+
+  function ciblesPour(exclureSeg) {
+    return M.ciblesAccrochage(ex, etat, CFGX, { exclureSeg: exclureSeg, bPrime: etat.statut[7] === 'valide', axe: etat.etape === 8 });
+  }
+  function rayonPx(e) { return e && e.pointerType === 'touch' ? CFG.accrochageTactilePx : CFG.accrochagePx; }
+  function accrocherUI(p, e, exclureSeg) {
+    var r = M.accrocher(p, ciblesPour(exclureSeg), rayonPx(e) / pxParUnite(), { grille: grilleActive, pas: G.pas, rayonGrille: CFG.rayonGrilleFraction * G.pas });
+    r.p = borner(r.p);
+    return r;
+  }
+
+  // Dépendances géométriques réelles : chaque émergent dépend de son incident, B' des six
+  // segments, A'B' de B'. Les trois trajets sont indépendants entre eux.
+  var DEPENDANCES = { 1: [], 2: [1], 3: [], 4: [3], 5: [], 6: [5], 7: [1, 2, 3, 4, 5, 6], 8: [7] };
+  function verifierUI(k, parDependances) {
+    var requis = parDependances ? DEPENDANCES[k] : [];
+    if (!parDependances) for (var i = 1; i < k; i++) requis.push(i); // première construction : dans l'ordre
+    for (var n = 0; n < requis.length; n++) {
+      var j = requis[n];
+      if (etat.statut[j] !== 'valide') return { ok: false, code: 'prerequis', message: "Termine d'abord l'étape " + j + ' (' + ETAPES[j].titre + ').' };
+    }
+    return M.verifierEtape(k, ex, etat, tol(), CFGX);
+  }
+
+  // Revérifie toutes les étapes déjà validées (après une modification).
+  function revaliderTout(silencieux) {
+    var casses = [];
+    for (var k = 1; k <= 8; k++) {
+      if (etat.statut[k] !== 'valide') continue;
+      var r = verifierUI(k, true);
+      if (r.ok) { if (r.seg) etat.segs[k] = r.seg; }
+      else { etat.statut[k] = 'erreur'; if (k === 7) etat.bpVerrouille = false; casses.push({ k: k, message: r.message }); }
+    }
+    if (casses.length) {
+      var p = casses[0];
+      allerEtape(premiereNonValide());
+      if (!silencieux) afficherRetour('err', "Ta modification a rendu l'étape « " + ETAPES[p.k].titre + ' » incorrecte. ' + p.message +
+        (casses.length > 1 ? ' Les étapes qui en dépendent sont à revérifier.' : ''));
+    }
+    return casses;
+  }
+
+  // ---------- interface ----------
+  function afficherRetour(type, t) { var r = $('retour'); r.className = 'retour ' + type; r.textContent = t; r.hidden = false; }
+  function effacerRetour() { $('retour').hidden = true; }
+
+  function allerEtape(k) {
+    etat.etape = k; niveauAide = 0;
+    selection = etapeSegment(k) && etat.segs[k] ? k : null;
+    poigneeActive = null;
+    if (k === 7) { if (!etat.bp) etat.bp = positionInitialeCroix(); poigneeActive = { croix: true }; }
+    majInterface(); render();
+  }
+
+  function construireProgression() {
+    var nav = $('progression'); nav.innerHTML = '';
+    for (var k = 1; k <= 9; k++) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.dataset.etape = k;
+      b.textContent = k === 9 ? '★' : String(k);
+      b.title = 'Étape ' + k + ' : ' + ETAPES[k].titre;
+      b.setAttribute('aria-label', b.title);
+      b.addEventListener('click', function () { var e = +this.dataset.etape; if (accessible(e)) { effacerRetour(); allerEtape(e); } });
+      nav.appendChild(b);
+    }
+  }
+
+  function majInterface() {
+    var k = etat.etape, pnv = premiereNonValide();
+    Array.prototype.forEach.call($('progression').children, function (b) {
+      var e = +b.dataset.etape;
+      b.className = (e <= 8 && etat.statut[e] === 'valide') || (e === 9 && pnv === 9) ? 'valide' : (e <= 8 && etat.statut[e] === 'erreur' ? 'erreur' : '');
+      if (e === k) { b.classList.add('courante'); b.setAttribute('aria-current', 'step'); } else b.removeAttribute('aria-current');
+      b.disabled = e > pnv;
+      b.title = 'Étape ' + e + ' : ' + ETAPES[e].titre + (b.classList.contains('valide') ? ' (validée)' : '');
+    });
+    var bilan = k === 9;
+    $('bloc-etape').hidden = bilan; $('bloc-bilan').hidden = !bilan;
+    $('btn-verifier').hidden = bilan; $('btn-annuler').hidden = bilan; $('btn-recommencer').hidden = bilan; $('btn-aide').hidden = bilan;
+    $('btn-modifier-bp').hidden = !(k >= 7 && k <= 8 && etat.statut[7] === 'valide');
+    if (bilan) { majBilan(); return; }
+    var E = ETAPES[k];
+    $('titre-etape').textContent = 'Étape ' + k + ' sur 8 — ' + E.titre;
+    $('consigne').textContent = E.consigne;
+    $('precision').hidden = !E.precision; $('precision').textContent = E.precision || '';
+    $('btn-verifier').textContent = k === 7 ? 'Vérifier ma position' : 'Vérifier mon tracé';
+    $('btn-recommencer').textContent = k <= 6 ? 'Recommencer ce rayon' : (k === 7 ? 'Replacer la croix au départ' : 'Recommencer cette étape');
+    $('btn-recommencer').hidden = k === 7 && etat.bpVerrouille;
+    majAide();
+  }
+
+  function majAide() {
+    var k = etat.etape, E = ETAPES[k], box = $('aide'), b = $('btn-aide');
+    if (!E || !E.aides) { box.hidden = true; return; }
+    box.innerHTML = '';
+    for (var i = 0; i < niveauAide; i++) {
+      var p = document.createElement('p');
+      p.textContent = (i === 0 ? '💡 Aide 1 : ' : '💡 Aide 2 : ') + E.aides[i];
+      box.appendChild(p);
+    }
+    box.hidden = niveauAide === 0;
+    b.textContent = niveauAide === 0 ? "💡 J'ai besoin d'une aide" : '💡 Une autre aide';
+    b.disabled = niveauAide >= 2;
+  }
+
+  function majBilan() {
+    var comp = [
+      ['Construction des rayons incidents', [1, 3, 5]],
+      ['Construction des rayons émergents', [2, 4, 6]],
+      ['Utilisation des foyers', [2, 5, 6]],
+      ["Localisation de B'", [7]],
+      ["Construction de A'B'", [8]]
+    ];
+    var h = '<h2>' + ETAPES[8].succes + '</h2><div><p><b>Bilan par compétence :</b></p><ul>';
+    comp.forEach(function (c) {
+      var n = c[1].reduce(function (a, k) { return a + suivi.erreurs[k]; }, 0);
+      h += '<li><span class="ok">✔</span> ' + c[0] + ' : ' + (n === 0 ? 'réussie du premier coup' : 'réussie après ' + n + ' correction' + (n > 1 ? 's' : '')) + '</li>';
+    });
+    h += '</ul></div><div>';
+    var nature = ex.type === 'agrandie' ? 'plus grande que l\'objet (image agrandie)' : ex.type === 'reduite' ? 'plus petite que l\'objet (image réduite)' : 'de même taille que l\'objet';
+    h += '<p>Ton image est <b>renversée</b> et ' + nature + '.</p>';
+    // Lecture affichée seulement quand la construction est entièrement validée : la position
+    // de l'image est lue précisément sur la simulation (au dixième de cm), en tenant compte de l'échelle.
+    h += '<p class="lecture">📏 Lecture sur la simulation : <b>OA\' = ' + fmt(ex.cm.OAi, 1) + ' cm</b> et A\'B\' = ' + fmt(ex.cm.ABi, 1) + ' cm</p>';
+    h += '<p><button type="button" id="btn-reference">' + (referenceVisible ? 'Masquer la construction de référence' : 'Comparer avec la construction de référence') + '</button> ' +
+         '<button type="button" class="principal" id="btn-nouveau-bilan">Nouvel exercice</button></p></div>';
+    $('bloc-bilan').innerHTML = h;
+    $('btn-reference').addEventListener('click', function () { referenceVisible = !referenceVisible; majBilan(); render(); });
+    $('btn-nouveau-bilan').addEventListener('click', function () { nouvelExercice(); });
+    Rapport.publier();
+  }
+
+  // ---------- actions ----------
+  function verifier() {
+    var k = etat.etape; if (k > 8) return;
+    var r = verifierUI(k);
+    suivi.verifications[k]++;
+    if (r.ok) {
+      if (r.seg) etat.segs[k] = r.seg;
+      etat.statut[k] = 'valide';
+      if (k === 7) etat.bpVerrouille = true;
+      afficherRetour('ok', '✔ ' + ETAPES[k].succes);
+      allerEtape(premiereNonValide());
+    } else {
+      if (r.code !== 'prerequis' && r.code !== 'absent') suivi.erreurs[k]++;
+      if (r.code !== 'absent') etat.statut[k] = 'erreur';
+      afficherRetour('err', r.message);
+      majInterface(); render();
+    }
+  }
+
+  function annuler() {
+    if (!pile.length) { afficherRetour('info', "Il n'y a rien à annuler."); return; }
+    var s = JSON.parse(pile.pop());
+    etat.segs = s.segs; etat.bp = s.bp; etat.statut = s.statut; etat.bpVerrouille = s.bpVerrouille;
+    var e = Math.min(s.etape, premiereNonValide());
+    etat.etape = e; niveauAide = 0; selection = etapeSegment(e) && etat.segs[e] ? e : null; poigneeActive = e === 7 ? { croix: true } : null;
+    afficherRetour('info', 'Ta dernière manipulation a été annulée.');
+    majInterface(); render();
+  }
+
+  function recommencer() {
+    var k = etat.etape;
+    if (etapeSegment(k)) {
+      if (!etat.segs[k]) { afficherRetour('info', "Il n'y a pas encore de segment à effacer pour cette étape."); return; }
+      empiler(instantane());
+      delete etat.segs[k]; etat.statut[k] = 'a_faire'; selection = null; poigneeActive = null;
+      revaliderTout(true);
+      allerEtape(Math.min(k, premiereNonValide()));
+      afficherRetour('info', 'Ton segment a été effacé : tu peux le tracer à nouveau.');
+    } else if (k === 7 && !etat.bpVerrouille) {
+      empiler(instantane());
+      etat.bp = positionInitialeCroix(); etat.statut[7] = 'a_faire';
+      afficherRetour('info', "La croix B' est revenue à sa position de départ.");
+      render();
+    }
+  }
+
+  function modifierBp() {
+    empiler(instantane());
+    etat.bpVerrouille = false; etat.statut[7] = 'a_faire';
+    if (etat.statut[8] === 'valide') etat.statut[8] = 'a_faire';
+    allerEtape(7);
+    afficherRetour('info', "Tu peux de nouveau déplacer la croix B'.");
+  }
+
+  function demanderAide() {
+    var k = etat.etape;
+    if (niveauAide >= 2) return;
+    niveauAide++;
+    suivi.aides[k] = Math.max(suivi.aides[k], niveauAide);
+    majAide();
+  }
+
+  // ---------- pointeur (Pointer Events : souris, stylet, tactile) ----------
+  function onDown(e) {
+    if (!ex || etat.etape > 9) return;
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    if (interaction) return;
+    var p = monde(e), cible = e.target.closest ? e.target.closest('[data-role]') : null;
+    var role = cible ? cible.getAttribute('data-role') : null, k = etat.etape;
+    if (role === 'poignee') {
+      var seg = +cible.getAttribute('data-seg'), bout = cible.getAttribute('data-bout');
+      interaction = { type: 'poignee', seg: seg, bout: bout, instantane: instantane(), bouge: false, id: e.pointerId };
+      selection = seg; poigneeActive = { seg: seg, bout: bout };
+    } else if (role === 'croix' && k === 7 && !etat.bpVerrouille) {
+      interaction = { type: 'croix', decalage: { x: etat.bp.x - p.x, y: etat.bp.y - p.y }, instantane: instantane(), bouge: false, id: e.pointerId };
+      poigneeActive = { croix: true };
+    } else if (role === 'segment' && (!etapeSegment(k) || etat.segs[k])) {
+      selection = +cible.getAttribute('data-seg'); poigneeActive = null; render(); return;
+    } else if (etapeSegment(k) && accessible(k)) {
+      var r = accrocherUI(p, e, null);
+      interaction = { type: 'trace', debut: r.p, courant: r.p, demarre: false, x0: e.clientX, y0: e.clientY,
+        cibleClic: role === 'segment' ? +cible.getAttribute('data-seg') : null, instantane: instantane(), id: e.pointerId };
+      survol = r.cible ? { cible: r.cible, p: r.p } : null;
+    } else {
+      selection = null; poigneeActive = k === 7 ? { croix: true } : null; render(); return;
+    }
+    try { svg.setPointerCapture(e.pointerId); } catch (err) { /* sans effet */ }
+    e.preventDefault();
+    render();
+  }
+
+  function onMove(e) {
+    if (!ex) return;
+    var p = monde(e), r;
+    if (!interaction) {
+      if (etapeSegment(etat.etape) && e.pointerType !== 'touch') {
+        r = accrocherUI(p, e, null);
+        var nv = r.cible && r.cible.type === 'point' ? { cible: r.cible, p: r.p } : null;
+        var avant = survol && survol.cible ? survol.cible.nom : null, apres = nv ? nv.cible.nom : null;
+        if (avant !== apres) { survol = nv; renderInteraction(); }
+      }
+      return;
+    }
+    if (e.pointerId !== interaction.id) return;
+    if (interaction.type === 'trace') {
+      if (!interaction.demarre && Math.hypot(e.clientX - interaction.x0, e.clientY - interaction.y0) < 5) return;
+      interaction.demarre = true;
+      r = accrocherUI(p, e, null);
+      interaction.courant = r.p;
+      survol = r.cible ? { cible: r.cible, p: r.p } : null;
+    } else if (interaction.type === 'poignee') {
+      r = accrocherUI(p, e, interaction.seg);
+      etat.segs[interaction.seg][interaction.bout] = r.p;
+      interaction.bouge = true;
+      survol = r.cible ? { cible: r.cible, p: r.p } : null;
+    } else if (interaction.type === 'croix') {
+      var q = { x: p.x + interaction.decalage.x, y: p.y + interaction.decalage.y };
+      if (grilleActive) q = M.accrocher(q, [], 0, { grille: true, pas: G.pas, rayonGrille: CFG.rayonGrilleFraction * G.pas }).p; // jamais vers la solution
+      etat.bp = borner(q);
+      interaction.bouge = true;
+    }
+    e.preventDefault();
+    render();
+  }
+
+  function onUp(e) {
+    if (!interaction || e.pointerId !== interaction.id) return;
+    var it = interaction; interaction = null; survol = null;
+    try { svg.releasePointerCapture(e.pointerId); } catch (err) { /* sans effet */ }
+    if (it.type === 'trace') {
+      if (it.demarre && M.dist(it.debut, it.courant) >= 0.3) {
+        empiler(it.instantane);
+        var k = etat.etape, etaitValide = etat.statut[k] === 'valide';
+        etat.segs[k] = { p: it.debut, q: it.courant };
+        selection = k; poigneeActive = { seg: k, bout: 'q' };
+        if (!etaitValide) etat.statut[k] = 'a_faire';
+        if (aUneEtapeValide()) revaliderTout(false);
+        if (!etaitValide) effacerRetour();
+      } else if (!it.demarre) {
+        selection = it.cibleClic; poigneeActive = null;
+      }
+    } else if (it.type === 'poignee') {
+      if (it.bouge) { empiler(it.instantane); if (aUneEtapeValide()) revaliderTout(false); }
+    } else if (it.type === 'croix') {
+      if (it.bouge) empiler(it.instantane);
+    }
+    majInterface(); render();
+  }
+
+  function onCancel(e) {
+    if (!interaction || e.pointerId !== interaction.id) return;
+    var s = JSON.parse(interaction.instantane);
+    etat.segs = s.segs; etat.bp = s.bp;
+    interaction = null; survol = null; render();
+  }
+
+  svg.addEventListener('pointerdown', onDown);
+  svg.addEventListener('pointermove', onMove);
+  svg.addEventListener('pointerup', onUp);
+  svg.addEventListener('pointercancel', onCancel);
+  svg.addEventListener('pointerleave', function () { if (!interaction && survol) { survol = null; renderInteraction(); } });
+  svg.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+
+  // clavier : ajustement fin de la dernière poignée manipulée ou de la croix
+  document.addEventListener('keydown', function (e) {
+    var dirs = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, 1], ArrowDown: [0, -1] };
+    if (!dirs[e.key] || !ex || document.querySelector('dialog[open]')) return;
+    var pas = e.shiftKey ? 0.5 : 0.05, d = dirs[e.key];
+    if (poigneeActive && poigneeActive.croix && etat.etape === 7 && !etat.bpVerrouille && etat.bp) {
+      empiler(instantane());
+      etat.bp = borner({ x: etat.bp.x + d[0] * pas, y: etat.bp.y + d[1] * pas });
+    } else if (poigneeActive && poigneeActive.seg && etat.segs[poigneeActive.seg]) {
+      empiler(instantane());
+      var s = etat.segs[poigneeActive.seg], b = poigneeActive.bout;
+      s[b] = borner({ x: s[b].x + d[0] * pas, y: s[b].y + d[1] * pas });
+      if (aUneEtapeValide()) revaliderTout(false);
+    } else return;
+    e.preventDefault();
+    majInterface(); render();
+  });
+
+  // ---------- suivi & rapport (préparation SCORM 1.2, non connecté) ----------
+  var Rapport = {
+    calculer: function () {
+      var n = 0, aides = 0, toutes = true;
+      for (var k = 1; k <= 8; k++) {
+        aides += suivi.aides[k];
+        if (etat.statut[k] !== 'valide') { toutes = false; continue; }
+        n += suivi.erreurs[k] === 0 ? 1 : (suivi.erreurs[k] === 1 ? 0.75 : 0.5);
+      }
+      return {
+        scoreBrut: Math.round(100 * n / 8), scoreMin: 0, scoreMax: 100,
+        achevement: toutes ? 'completed' : 'incomplete',
+        reussite: toutes ? 'passed' : 'unknown',
+        aidesConsultees: aides, dureeSecondes: Math.round((Date.now() - suivi.debut) / 1000),
+        detail: JSON.parse(JSON.stringify(suivi))
+      };
+    },
+    publier: function () {
+      var r = Rapport.calculer();
+      r.dejaCompte = !!suivi.compte;          // un exercice terminé n'est compté qu'une fois
+      AdaptateurLMS.envoyer(r);
+      if (r.achevement === 'completed') suivi.compte = true;
+      majIndicateurLMS();
+      try { window.dispatchEvent(new CustomEvent('construction-image:bilan', { detail: r })); } catch (e) { /* ancien navigateur */ }
+      return r;
+    }
+  };
+  // ---------- SCORM 1.2 ----------
+  // Si la page est lancée par une plateforme SCORM 1.2 (activité SCORM d'Éléa/Moodle), l'API
+  // « API » est trouvée dans une fenêtre parente. Sinon (fichier ouvert seul, GitHub Pages),
+  // l'application fonctionne normalement et ne transmet rien.
+  // Données envoyées : cmi.core.lesson_status (incomplete puis passed), cmi.core.score.raw/min/max
+  // (meilleur score de la session et des sessions précédentes), cmi.core.session_time,
+  // cmi.core.exit, cmi.suspend_data (nombre d'exercices terminés et dernier rapport, sans donnée personnelle).
+  var AdaptateurLMS = (function () {
+    var api = null, actif = false, termine = false, meilleur = -1, t0 = Date.now(), donnees = { n: 0 };
+    function trouver(w) {
+      for (var i = 0; w && i < 12; i++) {
+        try { if (w.API && typeof w.API.LMSInitialize === 'function') return w.API; } catch (e) { return null; }
+        try { if (!w.parent || w.parent === w) break; w = w.parent; } catch (e) { break; }
+      }
+      return null;
+    }
+    function chercher() {
+      var a = trouver(window);
+      if (!a) { try { if (window.opener) a = trouver(window.opener); } catch (e) { a = null; } }
+      return a;
+    }
+    function lire(k) { try { return String(api.LMSGetValue(k)); } catch (e) { return ''; } }
+    function ecrire(k, v) { try { return String(api.LMSSetValue(k, String(v))) === 'true'; } catch (e) { return false; } }
+    function valider() { try { api.LMSCommit(''); } catch (e) { /* sans effet */ } }
+    function duree(ms) { // format SCORM 1.2 : HHHH:MM:SS
+      var s = Math.round(ms / 1000), h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
+      s = s % 60;
+      return ('000' + h).slice(-4) + ':' + ('0' + m).slice(-2) + ':' + ('0' + s).slice(-2);
+    }
+    function connecter() {
+      if (actif) return true;
+      if (termine) return false;
+      api = chercher();
+      if (!api) return false;
+      try { if (String(api.LMSInitialize('')) !== 'true') return false; } catch (e) { return false; }
+      actif = true; t0 = Date.now();
+      var st = lire('cmi.core.lesson_status');
+      var sc = parseFloat(lire('cmi.core.score.raw'));
+      if (isFinite(sc)) meilleur = sc;
+      try { var sd = JSON.parse(lire('cmi.suspend_data') || '{}'); if (sd && typeof sd.n === 'number') donnees = sd; } catch (e) { /* données absentes */ }
+      if (st !== 'passed' && st !== 'completed') {
+        ecrire('cmi.core.lesson_status', 'incomplete');
+        ecrire('cmi.core.exit', 'suspend');
+      }
+      ecrire('cmi.core.score.min', 0); ecrire('cmi.core.score.max', 100);
+      valider();
+      return true;
+    }
+    function envoyer(r) {
+      if (!connecter() || r.achevement !== 'completed') return false;
+      if (!r.dejaCompte) { donnees.n++; r.dejaCompte = true; }
+      donnees.dernier = { score: r.scoreBrut, aides: r.aidesConsultees, duree: r.dureeSecondes };
+      if (r.scoreBrut > meilleur) { meilleur = r.scoreBrut; ecrire('cmi.core.score.raw', r.scoreBrut); }
+      ecrire('cmi.core.lesson_status', 'passed');
+      ecrire('cmi.core.exit', '');
+      ecrire('cmi.suspend_data', JSON.stringify(donnees).slice(0, 4000));
+      valider();
+      return true;
+    }
+    function terminer() {
+      if (!actif || termine) return;
+      termine = true;
+      ecrire('cmi.core.session_time', duree(Date.now() - t0));
+      valider();
+      try { api.LMSFinish(''); } catch (e) { /* sans effet */ }
+      actif = false;
+    }
+    return {
+      connecter: connecter, envoyer: envoyer, terminer: terminer,
+      etat: function () { return { actif: actif, meilleurScore: meilleur, exercicesTermines: donnees.n }; }
+    };
+  })();
+
+  // ---------- démonstration animée de l'outil (sans optique) ----------
+  var demo = { svg: $('demo'), anim: null };
+  function lancerDemo() {
+    var d = demo.svg, leg = $('legende-demo'), t0 = performance.now();
+    var P = { x: 70, y: 140 }, Q = { x: 330, y: 50 }, Mi = { x: 300, y: 95 }, depart = { x: 200, y: 180 };
+    function lerp(a, b, t) { t = Math.max(0, Math.min(1, t)); return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t }; }
+    function E(tag, at, txt) { var e = document.createElementNS(NS, tag); for (var k in at) e.setAttribute(k, at[k]); if (txt) e.textContent = txt; d.appendChild(e); return e; }
+    function frame(now) {
+      var t = ((now - t0) / 1000) % 8, curseur, fin = null, poignees = false, haloP = false, haloQ = false, txt, appui = false;
+      if (t < 1) { curseur = lerp(depart, P, t); haloP = t > 0.75; txt = 'Approche le curseur du point de départ : un cercle apparaît.'; }
+      else if (t < 1.3) { curseur = P; haloP = true; appui = true; txt = 'Appuie et maintiens…'; }
+      else if (t < 3.3) { appui = true; curseur = lerp(P, Mi, (t - 1.3) / 2); fin = curseur; txt = '…fais glisser : le segment suit ton geste.'; }
+      else if (t < 4) { curseur = Mi; fin = Mi; poignees = true; txt = 'Relâche : deux poignées apparaissent.'; }
+      else if (t < 6) { appui = t > 4.3; fin = t < 4.3 ? Mi : lerp(Mi, Q, (t - 4.3) / 1.5); curseur = fin; poignees = true; haloQ = M.dist(fin, Q) < 22; if (haloQ) fin = Q; txt = 'Déplace une poignée pour corriger : près d\'un point connu, elle s\'y accroche.'; }
+      else { curseur = Q; fin = Q; poignees = true; txt = "L'extrémité est accrochée exactement sur Q. L'autre n'a pas bougé."; }
+      while (d.firstChild) d.removeChild(d.firstChild);
+      for (var gx = 0; gx <= 400; gx += 20) E('line', { x1: gx, y1: 0, x2: gx, y2: 190, stroke: '#f0ebf5' });
+      for (var gy = 0; gy <= 190; gy += 20) E('line', { x1: 0, y1: gy, x2: 400, y2: gy, stroke: '#f0ebf5' });
+      [[P, 'P'], [Q, 'Q']].forEach(function (a) { E('circle', { cx: a[0].x, cy: a[0].y, r: 4, fill: '#222' }); E('text', { x: a[0].x - 6, y: a[0].y - 10, 'font-size': 15, 'font-weight': 'bold', 'text-anchor': 'end' }, a[1]); });
+      if (haloP) E('circle', { cx: P.x, cy: P.y, r: 14, fill: 'none', stroke: '#7b1fa2', 'stroke-dasharray': '3 2', 'stroke-width': 1.5 });
+      if (haloQ) E('circle', { cx: Q.x, cy: Q.y, r: 14, fill: 'none', stroke: '#7b1fa2', 'stroke-dasharray': '3 2', 'stroke-width': 1.5 });
+      if (fin) E('line', { x1: P.x, y1: P.y, x2: fin.x, y2: fin.y, stroke: '#555', 'stroke-width': 3, 'stroke-linecap': 'round' });
+      if (poignees) [P, fin].forEach(function (h) { E('circle', { cx: h.x, cy: h.y, r: 9, fill: '#fff', stroke: '#555', 'stroke-width': 2.5 }); });
+      E('path', { d: 'M' + curseur.x + ' ' + curseur.y + ' l0 18 l5 -5 l4 9 l3 -1.5 l-4 -9 l7 0 z', fill: appui ? '#7b1fa2' : '#fff', stroke: '#222', 'stroke-width': 1.3 });
+      leg.textContent = txt;
+      demo.anim = requestAnimationFrame(frame);
+    }
+    demo.anim = requestAnimationFrame(frame);
+  }
+  function arreterDemo() { if (demo.anim) cancelAnimationFrame(demo.anim); demo.anim = null; }
+
+  // ---------- nouvel exercice ----------
+  function melanger(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(rng() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function nouvelExercice(impose) {
+    if (impose) { ex = impose; CFGX = impose.cfg; }
+    else {
+      try {
+        if (!sacTypes.length) sacTypes = melanger(M.typesPossibles(CFG));
+        ex = M.genererExercice(CFG, rng, sacTypes.pop());
+        CFGX = CFG;
+      } catch (err) {
+        document.querySelector('.panneau').innerHTML = '<p class="message-erreur">Paramètres incompatibles : ' + err.message + '</p>';
+        return;
+      }
+    }
+    majCadre();
+    etat ={ segs: {}, bp: null, statut: {}, etape: 1, bpVerrouille: false };
+    suivi = { aides: {}, verifications: {}, erreurs: {}, debut: Date.now() };
+    for (var k = 1; k <= 8; k++) { etat.statut[k] = 'a_faire'; suivi.aides[k] = 0; suivi.verifications[k] = 0; suivi.erreurs[k] = 0; }
+    pile = []; selection = null; interaction = null; survol = null; poigneeActive = null; niveauAide = 0; referenceVisible = false;
+    $('donnees').textContent = "f' = " + fmt(ex.cm.f) + ' cm · OA = ' + fmt(ex.cm.OA) + ' cm · AB = ' + fmt(ex.cm.AB) + ' cm';
+    renderStatique(); effacerRetour(); majInterface(); render();
+  }
+
+  // ---------- valeurs imposées par l'élève (ex. : données d'une question STACK) ----------
+  function lireNombre(id) { var v = String($(id).value).trim().replace(',', '.'); return v === '' ? NaN : Number(v); }
+  function ouvrirValeurs() {
+    $('val-fp').value = fmt(ex.cm.f); $('val-oa').value = fmt(ex.cm.OA); $('val-ab').value = fmt(ex.cm.AB);
+    $('val-erreur').hidden = true;
+    var dl = $('dlg-valeurs'); if (dl.showModal) dl.showModal(); else dl.setAttribute('open', '');
+    $('val-fp').focus(); $('val-fp').select();
+  }
+  function fermerValeurs() { var dl = $('dlg-valeurs'); if (dl.close) dl.close(); else dl.removeAttribute('open'); }
+  function appliquerValeurs() {
+    var r = M.exerciceDepuisCm(lireNombre('val-fp'), lireNombre('val-oa'), lireNombre('val-ab'), CFG);
+    if (!r.ok) { $('val-erreur').textContent = r.raisons[0]; $('val-erreur').hidden = false; return; }
+    var commence = Object.keys(etat.segs).length || etat.bp;
+    if (commence && etat.etape !== 9 && !window.confirm('Ta construction actuelle sera effacée. Continuer ?')) return;
+    fermerValeurs();
+    nouvelExercice(r.ex);
+    afficherRetour('info', "Les valeurs ont été réglées : f' = " + fmt(r.ex.cm.f) + ' cm, OA = ' + fmt(r.ex.cm.OA) + ' cm, AB = ' + fmt(r.ex.cm.AB) + ' cm. Regarde bien l\'échelle en haut à gauche.');
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('[data-pas]'), function (b) {
+    b.addEventListener('click', function () {
+      var id = b.getAttribute('data-cible'), pas = Number(b.getAttribute('data-pas')), v = lireNombre(id);
+      if (!isFinite(v)) v = 0;
+      v = Math.max(Number($(id).getAttribute('data-min')), Math.round((v + pas) * 2) / 2);
+      $(id).value = fmt(v);
+      $('val-erreur').hidden = true;
+    });
+  });
+  $('btn-valeurs').addEventListener('click', ouvrirValeurs);
+  $('btn-appliquer-valeurs').addEventListener('click', appliquerValeurs);
+  $('btn-annuler-valeurs').addEventListener('click', fermerValeurs);
+  $('form-valeurs').addEventListener('submit', function (e) { e.preventDefault(); appliquerValeurs(); });
+
+  // ---------- branchements ----------
+  $('btn-verifier').addEventListener('click', verifier);
+  $('btn-annuler').addEventListener('click', annuler);
+  $('btn-recommencer').addEventListener('click', recommencer);
+  $('btn-aide').addEventListener('click', demanderAide);
+  $('btn-modifier-bp').addEventListener('click', modifierBp);
+  $('btn-nouveau').addEventListener('click', function () {
+    var commence = Object.keys(etat.segs).length || etat.bp;
+    if (!commence || etat.etape === 9 || window.confirm('Commencer un nouvel exercice ? Ta construction actuelle sera effacée.')) nouvelExercice();
+  });
+  $('opt-grille').checked = grilleActive;
+  $('opt-grille').addEventListener('change', function () { grilleActive = this.checked; });
+  $('btn-outil').addEventListener('click', function () { var dl = $('dlg-outil'); if (dl.showModal) dl.showModal(); else dl.setAttribute('open', ''); lancerDemo(); });
+  $('btn-fermer-outil').addEventListener('click', function () { var dl = $('dlg-outil'); if (dl.close) dl.close(); else dl.removeAttribute('open'); });
+  $('dlg-outil').addEventListener('close', arreterDemo);
+  if (window.ResizeObserver) new ResizeObserver(function () { render(); }).observe(svg);
+  else window.addEventListener('resize', render);
+
+  function majIndicateurLMS() {
+    var e = AdaptateurLMS.etat(), b = $('lms');
+    b.hidden = !e.actif;
+    if (e.actif) b.textContent = '🔗 Suivi Éléa actif' + (e.meilleurScore >= 0 ? ' · meilleur score : ' + e.meilleurScore + '/100' : '');
+  }
+  window.addEventListener('pagehide', function () { AdaptateurLMS.terminer(); });
+  window.addEventListener('beforeunload', function () { AdaptateurLMS.terminer(); });
+
+  construireProgression();
+  (function demarrer() { // ?fp=12.5&oa=40&ab=3 : exercice directement réglé sur ces valeurs
+    var q = new URLSearchParams(location.search);
+    if (q.get('fp') && q.get('oa') && q.get('ab')) {
+      var n = function (k) { return Number(String(q.get(k)).replace(',', '.')); };
+      var r = M.exerciceDepuisCm(n('fp'), n('oa'), n('ab'), CFG);
+      if (r.ok) { nouvelExercice(r.ex); return; }
+    }
+    nouvelExercice();
+  })();
+  AdaptateurLMS.connecter();
+  majIndicateurLMS();
+
+  // Accès pour l'enseignante et les tests (console du navigateur).
+  window.ConstructionImage = {
+    config: CFG,
+    exercice: function () { return ex; },
+    etat: function () { return etat; },
+    suivi: function () { return suivi; },
+    rapport: function () { return Rapport.calculer(); },
+    scorm: function () { var c = AdaptateurLMS.connecter(); majIndicateurLMS(); return c; },
+    etatScorm: function () { return AdaptateurLMS.etat(); },
+    nouvelExercice: nouvelExercice
+  };
+})();
+</script>
+</body>
+</html>
