@@ -1,0 +1,26 @@
+Tests du moteur géométrique — 2026-11-11 — 2000 tirages (graine 20261111)
+
+✔ T15 — tous les tirages sont constructibles et entièrement visibles
+✔ Tirage — images agrandies, réduites et de même taille présentes — agrandies 625, réduites 618, même taille 757 ; |γ| de 0.50 à 2.00
+✔ Tirage — une graine donne toujours le même exercice
+✔ Tirage — domaines modifiés par l'enseignante (kMin 1,2 ; kMax 4) restent visibles — 500 tirages
+✔ Tirage — paramètres impossibles signalés clairement — Aucun tirage constructible et entièrement visible avec ces paramètres.
+✔ T9 — les trois rayons émergents théoriques concourent en B' — écart maximal 2.5e-15 carreau
+✔ Construction idéale acceptée aux 8 étapes (tous les tirages)
+✔ Segments tracés à l'envers (de la lentille vers B) acceptés et réorientés
+✔ Petites imprécisions (dans les tolérances) acceptées
+✔ T6 — un rayon incident qui dépasse la lentille est refusé
+✔ T8 — directions incorrectes refusées (rotation de 4° ; 3° pour l'émergent)
+✔ Point de départ, sens, longueur et continuité contrôlés
+✔ T5/T12 — modifier un rayon validé invalide les étapes dépendantes
+✔ Le point d'incidence réutilisé est celui tracé par l'élève (pas le théorique)
+✔ T10/T13 — position de B' et image A'B'
+✔ B' accepté sur l'intersection des rayons de l'élève (légèrement décalée mais valide) — 2000 cas
+✔ T3 — l'accrochage capture un point remarquable dans la zone de capture
+✔ T4 — hors des zones de capture, un point n'est JAMAIS déplacé (direction libre) — 19523 positions libres vérifiées
+✔ T4 — l'accrochage à la lentille ne change que l'abscisse
+✔ T10 — aucune cible d'accrochage ne révèle B', A' ou un point d'incidence théorique
+✔ Quadrillage : capture seulement très près d'un nœud, désactivé par défaut
+✔ T14 — tolérances : en carreaux, jamais sous l'équivalent écran — position : 0.25 carreau (60 px/carreau), 0.53 (15 px/carreau)
+
+22 tests réussis, 0 en échec.
